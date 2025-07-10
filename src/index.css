@@ -11,3 +11,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Custom CSS for active keyboard button */
+.hg-activeButton {
+  background: #007bff !important;
+  color: white !important;
+}

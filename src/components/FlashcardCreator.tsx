@@ -4,7 +4,7 @@ import { Form, Button, Card, Row, Col } from 'react-bootstrap';
 import { Flashcard } from '../types';
 import { getYoutubeVideoId } from '../utils/youtube';
 import { translateText } from '../services/translation';
-import KoreanKeyboard from './KoreanKeyboard'; // Import the interactive keyboard
+import CustomJamoKeyboard from './CustomJamoKeyboard'; // Import the interactive keyboard
 import { Keyboard as KeyboardIcon } from 'react-bootstrap-icons';
 
 interface Props {
@@ -118,7 +118,7 @@ const FlashcardCreator: React.FC<Props> = ({ addFlashcard }) => {
           </Form.Group>
           {showKeyboard && (
             <div className="mt-3">
-              <KoreanKeyboard input={koreanPhrase} onChange={setKoreanPhrase} />
+              <CustomJamoKeyboard input={koreanPhrase} onChange={setKoreanPhrase} />
             </div>
           )}
           <div className="d-grid mt-3">

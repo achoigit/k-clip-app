@@ -55,9 +55,28 @@ describe('KoreanKeyboard onKeyPress', () => {
     };
   });
 
-  it('should assemble', () => {
+  it('should assemble Hangul Letter Kiyeok Jamos', () => {
     const result = Hangul.assemble(['ㄱ', 'ㅏ']);
+    expect(result.length).toBe(1);
     expect(result).toBe('가');
+    const firstJamo = Hangul.disassemble(result)[0];
+    const secondJamo = Hangul.disassemble(result)[1];
+    expect(firstJamo).toBe('ㄱ');
+    expect(secondJamo).toBe('ㅏ');
+    expect(firstJamo.codePointAt(0)).toBe(12593); // 'ㄱ'
+    expect(secondJamo.codePointAt(0)).toBe(12623); // 'ㅏ'
+    expect(result.codePointAt(0)).toBe(44032); // '가'
+  });
+
+  it.skip('should assemble Hangul Choseong Kiyeok Jamos', () => {
+    const result = Hangul.assemble([String.fromCharCode(4352), String.fromCharCode(4449)]);
+    expect(result.length).toBe(1);
+    expect(result).toBe('가');
+  });
+
+  it('should assemble three jamo', () => {
+    const result = Hangul.assemble(['ㄱ', 'ㅏ', 'ㄴ']);
+    expect(result).toBe('간');
     expect(result.length).toBe(1);
   });
 

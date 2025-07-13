@@ -12,25 +12,36 @@ const jamoLayout = {
   default: [
     'ㅂ ㅈ ㄷ ㄱ ㅅ ㅛ ㅕ ㅑ ㅐ ㅔ',
     'ㅁ ㄴ ㅇ ㄹ ㅎ ㅗ ㅓ ㅏ ㅣ',
-    'ㅋ ㅌ ㅊ ㅍ ㅠ ㅜ ㅡ',
-    '{shift} {space} {return} {bksp} {clear}',
+    'ㅋ ㅌ ㅊ ㅍ ㅠ ㅜ ㅡ , . ? !',
+    '{shift} {space} {bksp}',
   ],
   shift: [
-    'ㅃ ㅉ ㄸ ㄲ ㅆ ㅛ ㅕ ㅑ ㅒ ㅖ {shift}'
+    '{shift} ㅃ ㅉ ㄸ ㄲ ㅆ ㅛ ㅕ ㅑ ㅒ ㅖ'
   ]
 };
 
 const CustomJamoKeyboard: React.FC<Props> = ({ onChange, input }) => {
   const [layoutName, setLayoutName] = useState('default');
   const jamoBuffer = useRef<string[]>([]);
-  const composedInput = useRef<string>(input);
+  const [composedInput, setComposedInput] = useState(input);
 
   useEffect(() => {
-    composedInput.current = input;
+    setComposedInput(input);
   }, [input]);
 
+  const displayInput = (input: string) => {
+    console.log('Composed input:', input);
+    setComposedInput(input);
+    onChange(input);
+  }
+
   const onKeyPress = (button: string) => {
-    console.log('Button pressed:', button, ' code:', button.charCodeAt(0), ' current input:', composedInput.current, ' jamo buffer:', jamoBuffer.current);
+    let currentInput = composedInput;
+    console.log('button:', button, ' input:', currentInput, ' buffer:', jamoBuffer.current);
+
+    if (layoutName === 'shift') {
+      setLayoutName('default');
+    }
 
     if (button === '{shift}') {
       setLayoutName(layoutName === 'default' ? 'shift' : 'default');
@@ -38,30 +49,14 @@ const CustomJamoKeyboard: React.FC<Props> = ({ onChange, input }) => {
     }
 
     if (button === '{space}') {
-      composedInput.current += ' ';
-      onChange(composedInput.current);
-      return;
-    }
-
-    if (button === '{return}') {
-      composedInput.current += '\n';
-      onChange(composedInput.current);
+      jamoBuffer.current.length = 0;
+      displayInput(currentInput + ' ');
       return;
     }
 
     if (button === '{bksp}') {
-      if (jamoBuffer.current.length > 0) {
-        jamoBuffer.current.length = 0;
-      }
-      composedInput.current = composedInput.current.slice(0, -1);
-      onChange(composedInput.current);
-      return;
-    }
-
-    if (button === '{clear}') {
       jamoBuffer.current.length = 0;
-      composedInput.current = '';
-      onChange(composedInput.current);
+      displayInput(currentInput.slice(0, -1));
       return;
     }
 
@@ -71,25 +66,33 @@ const CustomJamoKeyboard: React.FC<Props> = ({ onChange, input }) => {
       (Hangul.isConsonant(disassembled[0]) || Hangul.isVowel(disassembled[0]));
 
     if (!isJamo) {
-      if (jamoBuffer.current.length > 0) {
-        jamoBuffer.current.length = 0;
-      }
-      composedInput.current += button;
-      onChange(composedInput.current);
+      jamoBuffer.current.length = 0;
+      displayInput(currentInput + button);
       return;
     }
 
-    jamoBuffer.current.push(disassembled[0]);
+    jamoBuffer.current.push(button);
+
     const composed = Hangul.assemble(jamoBuffer.current);
-    if (jamoBuffer.current.length === 1) {
-      composedInput.current += composed;
-    } else if (jamoBuffer.current.length > 1 && jamoBuffer.current.length <= 4) {
-      composedInput.current = composedInput.current.slice(0, -1) + composed;
-      if (jamoBuffer.current.length === 4) {
-        jamoBuffer.current.length = 0;
-      }
+    console.log('composed:', composed, ' input:', currentInput, ' buffer:', jamoBuffer.current);
+
+    if (jamoBuffer.current.length > 1) {
+      currentInput = currentInput.slice(0, -1); // Overwrite last character with composed syllable
     }
-    onChange(composedInput.current);
+
+    if (composed.length > 1) {
+      const syllable = composed.slice(0, 1);
+      const remainder = composed.slice(1);
+      jamoBuffer.current = Hangul.disassemble(remainder);
+      console.log('syllable:', syllable, ' buffer:', jamoBuffer.current);
+      displayInput(currentInput + composed);
+      return;
+    }
+
+    const newInput = currentInput + composed;
+    console.log('newInput:', newInput, ' buffer:', jamoBuffer.current);
+    setComposedInput(currentInput + composed);
+    onChange(currentInput + composed);
   };
 
   return (
@@ -98,15 +101,11 @@ const CustomJamoKeyboard: React.FC<Props> = ({ onChange, input }) => {
         layout={jamoLayout}
         layoutName={layoutName}
         onKeyPress={onKeyPress}
-        onChange={onChange}
-        input={composedInput.current}
-        keyboardRef={(r) => (jamoBuffer.current = r ? [] : jamoBuffer.current)}
+        input={composedInput}
         display={{
           '{shift}': 'Shift',
           '{space}': 'Space',
-          '{return}': 'Enter',
-          '{bksp}': 'Backspace',
-          '{clear}': 'Clear'
+          '{bksp}': 'Backspace'
         }}
       />
     </div>

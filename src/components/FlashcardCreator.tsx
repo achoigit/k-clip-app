@@ -36,7 +36,7 @@ const FlashcardCreator: React.FC<Props> = ({ addFlashcard }) => {
   const [endTime, setEndTime] = useState('');
   const [koreanPhrase, setKoreanPhrase] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
-  const [showKeyboard, setShowKeyboard] = useState(false); // Renamed from showReferenceKeyboard
+  const [showKeyboard, setShowKeyboard] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

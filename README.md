@@ -1,6 +1,6 @@
 # K-Clip Korean Learning App
 
-An app for learning Korean by building a custom collection of youtube clips that contain words or phrases to be learned by reviewing in a typical recurring flashcard memorization pattern.
+An app for learning Korean by allowing the user to build a custom collection of youtube clips that contain words or phrases to be learned by reviewing in a typical recurring flashcard memorization pattern.
 
 This project was initially vibe-coded using Gemini 2.5.
 

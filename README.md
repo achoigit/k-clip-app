@@ -1,4 +1,31 @@
-# Getting Started with Create React App
+# k-clip React App
+
+An app for learning Korean by building a custom collection of youtube clips thatcontain words or phrases to be reviewed in a typical recurring flashcard memory  pattern.
+
+This project was initially vibe-coded using Gemini 2.5.
+
+First Gemini session stats:
+│                                                                                                                               │
+│  Agent powering down. Goodbye!                                                                                                │
+│                                                                                                                               │
+│  Interaction Summary                                                                                                          │
+│  Tool Calls:                 166 ( ✔ 161 ✖ 5 )                                                                                │
+│  Success Rate:               97.0%                                                                                            │
+│  User Agreement:             100.0% (23 reviewed)                                                                             │
+│                                                                                                                               │
+│  Performance                                                                                                                  │
+│  Wall Time:                  165h 51m 6s                                                                                      │
+│  Agent Active:               1h 15m 19s                                                                                       │
+│    » API Time:               42m 55s (57.0%)                                                                                  │
+│    » Tool Time:              32m 23s (43.0%)                                                                                  │
+│                                                                                                                               │
+│                                                                                                                               │
+│  Model Usage                  Reqs   Input Tokens  Output Tokens                                                              │
+│  ───────────────────────────────────────────────────────────────                                                              │
+│  gemini-2.5-pro                 86      2,273,047         35,115                                                              │
+│  gemini-2.5-flash              133     17,917,216         56,857   
+
+In addition, it said my available context by the end was 81%.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

@@ -5,6 +5,7 @@ An app for learning Korean by building a custom collection of youtube clips that
 This project was initially vibe-coded using Gemini 2.5.
 
 First Gemini session stats:
+```
 │                                                                                                                               │
 │  Agent powering down. Goodbye!                                                                                                │
 │                                                                                                                               │
@@ -24,7 +25,7 @@ First Gemini session stats:
 │  ───────────────────────────────────────────────────────────────                                                              │
 │  gemini-2.5-pro                 86      2,273,047         35,115                                                              │
 │  gemini-2.5-flash              133     17,917,216         56,857   
-
+```
 In addition, it said my available context by the end was 81%.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

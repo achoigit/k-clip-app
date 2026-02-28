@@ -24,20 +24,21 @@ const CustomJamoKeyboard: React.FC<Props> = ({ onChange, input }) => {
   const [layoutName, setLayoutName] = useState('default');
   const jamoBuffer = useRef<string[]>([]);
   const [composedInput, setComposedInput] = useState(input);
+  const currentInputRef = useRef(input);
 
   useEffect(() => {
     setComposedInput(input);
+    currentInputRef.current = input;
   }, [input]);
 
-  const displayInput = (input: string) => {
-    console.log('Composed input:', input);
-    setComposedInput(input);
-    onChange(input);
-  }
+  const commitInput = (nextInput: string) => {
+    currentInputRef.current = nextInput;
+    setComposedInput(nextInput);
+    onChange(nextInput);
+  };
 
   const onKeyPress = (button: string) => {
-    let currentInput = composedInput;
-    console.log('button:', button, ' input:', currentInput, ' buffer:', jamoBuffer.current);
+    let currentInput = currentInputRef.current;
 
     if (layoutName === 'shift') {
       setLayoutName('default');
@@ -50,13 +51,13 @@ const CustomJamoKeyboard: React.FC<Props> = ({ onChange, input }) => {
 
     if (button === '{space}') {
       jamoBuffer.current.length = 0;
-      displayInput(currentInput + ' ');
+      commitInput(currentInput + ' ');
       return;
     }
 
     if (button === '{bksp}') {
       jamoBuffer.current.length = 0;
-      displayInput(currentInput.slice(0, -1));
+      commitInput(currentInput.slice(0, -1));
       return;
     }
 
@@ -67,32 +68,26 @@ const CustomJamoKeyboard: React.FC<Props> = ({ onChange, input }) => {
 
     if (!isJamo) {
       jamoBuffer.current.length = 0;
-      displayInput(currentInput + button);
+      commitInput(currentInput + button);
       return;
     }
 
     jamoBuffer.current.push(button);
 
     const composed = Hangul.assemble(jamoBuffer.current);
-    console.log('composed:', composed, ' input:', currentInput, ' buffer:', jamoBuffer.current);
 
     if (jamoBuffer.current.length > 1) {
       currentInput = currentInput.slice(0, -1); // Overwrite last character with composed syllable
     }
 
     if (composed.length > 1) {
-      const syllable = composed.slice(0, 1);
       const remainder = composed.slice(1);
       jamoBuffer.current = Hangul.disassemble(remainder);
-      console.log('syllable:', syllable, ' buffer:', jamoBuffer.current);
-      displayInput(currentInput + composed);
+      commitInput(currentInput + composed);
       return;
     }
 
-    const newInput = currentInput + composed;
-    console.log('newInput:', newInput, ' buffer:', jamoBuffer.current);
-    setComposedInput(currentInput + composed);
-    onChange(currentInput + composed);
+    commitInput(currentInput + composed);
   };
 
   return (

@@ -86,6 +86,19 @@ describe('CustomJamoKeyboard', () => {
     expect(handleChange).toHaveBeenCalledWith('');
   });
 
+  it('should not duplicate characters after backspace then typing', () => {
+    const handleChange = jest.fn();
+    const { getByText } = render(
+      <CustomJamoKeyboard onChange={handleChange} input="가" />
+    );
+
+    fireEvent.click(getByText('Backspace'));
+    fireEvent.click(getByText('ㄴ'));
+    fireEvent.click(getByText('ㅏ'));
+
+    expect(handleChange).toHaveBeenLastCalledWith('나');
+  });
+
   it('should handle space and commit buffer', () => {
     const handleChange = jest.fn();
     const { getByText } = render(

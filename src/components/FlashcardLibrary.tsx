@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Row, Col, Card, Button, Form, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { Flashcard } from '../types';
 import VideoPlayer from './VideoPlayer';
-import EditFlashcardModal from './EditFlashcardModal';
 import { getYoutubeVideoId } from '../utils/youtube';
 import { translateText } from '../services/translation';
 import { Play, Translate, Mic, Pencil, Trash, ArrowClockwise } from 'react-bootstrap-icons';
@@ -12,13 +11,13 @@ interface Props {
   flashcards: Flashcard[];
   onUpdateFlashcard: (updatedCard: Flashcard) => void;
   onDeleteFlashcard: (cardId: string) => void;
+  onEditFlashcard: (card: Flashcard) => void;
 }
 
-const FlashcardLibrary: React.FC<Props> = ({ flashcards, onUpdateFlashcard, onDeleteFlashcard }) => {
+const FlashcardLibrary: React.FC<Props> = ({ flashcards, onUpdateFlashcard, onDeleteFlashcard, onEditFlashcard }) => {
   const [selectedVideo, setSelectedVideo] = useState<Flashcard | null>(null);
   const [showTranslation, setShowTranslation] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
   const [isTranslating, setIsTranslating] = useState<string | null>(null);
 
   const playVideo = (card: Flashcard) => {
@@ -48,11 +47,7 @@ const FlashcardLibrary: React.FC<Props> = ({ flashcards, onUpdateFlashcard, onDe
   };
 
   const handleEdit = (card: Flashcard) => {
-    setEditingCard(card);
-  };
-
-  const handleCloseEdit = () => {
-    setEditingCard(null);
+    onEditFlashcard(card);
   };
 
   const handleFixTranslation = async (card: Flashcard) => {
@@ -136,14 +131,6 @@ const FlashcardLibrary: React.FC<Props> = ({ flashcards, onUpdateFlashcard, onDe
           videoId={getYoutubeVideoId(selectedVideo.youtubeUrl) || ''}
           startTime={selectedVideo.startTime}
           endTime={selectedVideo.endTime}
-        />
-      )}
-      {editingCard && (
-        <EditFlashcardModal
-          show={true}
-          onHide={handleCloseEdit}
-          card={editingCard}
-          onSave={onUpdateFlashcard}
         />
       )}
     </div>

@@ -9,6 +9,7 @@ import { updateFlashcardReview } from './services/srs';
 
 const App: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
 
   useEffect(() => {
     try {
@@ -57,6 +58,14 @@ const App: React.FC = () => {
     setFlashcards(prev => prev.map(c => c.id === updatedCard.id ? updatedCard : c));
   };
 
+  const startEditingFlashcard = (card: Flashcard) => {
+    setEditingCard(card);
+  };
+
+  const stopEditingFlashcard = () => {
+    setEditingCard(null);
+  };
+
   const deleteFlashcard = (cardId: string) => {
     if (window.confirm('Are you sure you want to delete this flashcard?')) {
         const newFlashcards = flashcards.filter(c => c.id !== cardId);
@@ -81,10 +90,20 @@ const App: React.FC = () => {
             <Row>
                 <Col md={4}>
                 <Dashboard flashcards={flashcards} />
-                <FlashcardCreator addFlashcard={addFlashcard} />
+                <FlashcardCreator
+                  addFlashcard={addFlashcard}
+                  editingCard={editingCard}
+                  onUpdateFlashcard={updateFlashcard}
+                  onCancelEdit={stopEditingFlashcard}
+                />
                 </Col>
                 <Col md={8}>
-                <FlashcardLibrary flashcards={flashcards} onUpdateFlashcard={updateFlashcard} onDeleteFlashcard={deleteFlashcard} />
+                <FlashcardLibrary
+                  flashcards={flashcards}
+                  onUpdateFlashcard={updateFlashcard}
+                  onDeleteFlashcard={deleteFlashcard}
+                  onEditFlashcard={startEditingFlashcard}
+                />
                 </Col>
             </Row>
             </Tab>

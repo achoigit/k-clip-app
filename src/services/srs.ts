@@ -3,7 +3,7 @@ import { Flashcard } from '../types';
 
 export const updateFlashcardReview = (
   card: Flashcard,
-  performance: 'easy' | 'good' | 'hard'
+  performance: 'easy' | 'okay' | 'hard'
 ): Flashcard => {
   let { easeFactor, interval } = card;
 
@@ -29,7 +29,7 @@ export const updateFlashcardReview = (
   nextReview.setDate(nextReview.getDate() + interval);
 
   let status: 'learning' | 'mastered' = 'learning';
-  if (interval > 30) { // Consider mastered if next review is more than a month away
+  if (performance === 'easy' || interval > 30) { // Easy marks mastered immediately
     status = 'mastered';
   }
 

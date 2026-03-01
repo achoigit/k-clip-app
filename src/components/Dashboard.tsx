@@ -1,17 +1,28 @@
 
 import React from 'react';
-import { Card, ProgressBar, Row, Col } from 'react-bootstrap';
+import { Card, ProgressBar, Row, Col, Button } from 'react-bootstrap';
 import { Flashcard } from '../types';
 
 interface Props {
   flashcards: Flashcard[];
+  reviewSessionMode: 'none' | 'due' | 'difficult';
+  onStartDueReview: () => void;
+  onStartDifficultReview: () => void;
+  onBackToLibrary: () => void;
 }
 
-const Dashboard: React.FC<Props> = ({ flashcards }) => {
+const Dashboard: React.FC<Props> = ({
+  flashcards,
+  reviewSessionMode,
+  onStartDueReview,
+  onStartDifficultReview,
+  onBackToLibrary,
+}) => {
   const totalCards = flashcards.length;
   const newCards = flashcards.filter(card => card.status === 'new').length;
   const learningCards = flashcards.filter(card => card.status === 'learning').length;
   const masteredCards = flashcards.filter(card => card.status === 'mastered').length;
+  const dueCardsCount = flashcards.filter(card => new Date(card.nextReview) <= new Date()).length;
 
   const masteredPercentage = totalCards > 0 ? Math.round((masteredCards / totalCards) * 100) : 0;
 
@@ -48,6 +59,26 @@ const Dashboard: React.FC<Props> = ({ flashcards }) => {
             </div>
           </Col>
         </Row>
+        <div className="d-grid gap-2 mt-3">
+          {reviewSessionMode === 'none' ? (
+            <>
+              {dueCardsCount > 0 ? (
+                <Button variant="outline-primary" onClick={onStartDueReview}>
+                  Start Due Review
+                </Button>
+              ) : (
+                <p className="text-muted mb-0">No reviews due today!</p>
+              )}
+              <Button variant="outline-primary" onClick={onStartDifficultReview} disabled={flashcards.length === 0}>
+                Review 10 Most Difficult Phrases
+              </Button>
+            </>
+          ) : (
+            <Button variant="outline-secondary" onClick={onBackToLibrary}>
+              Back to Library
+            </Button>
+          )}
+        </div>
       </Card.Body>
     </Card>
   );

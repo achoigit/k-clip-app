@@ -1,60 +1,156 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Container, Row, Col } from 'react-bootstrap';
+import { Button, Card, Container } from 'react-bootstrap';
 import { Flashcard } from '../types';
+import VideoPlayer from './VideoPlayer';
+import { getYoutubeVideoId } from '../utils/youtube';
+import { Play } from 'react-bootstrap-icons';
 
 interface Props {
   flashcards: Flashcard[];
-  onReview: (card: Flashcard, performance: 'easy' | 'good' | 'hard') => void;
+  onReview: (card: Flashcard, performance: 'easy' | 'okay' | 'hard') => void;
+  mode: 'due' | 'difficult';
+  onExit: () => void;
 }
 
-const ReviewPage: React.FC<Props> = ({ flashcards, onReview }) => {
-  const [dueCards, setDueCards] = useState<Flashcard[]>([]);
+const shuffleCards = (cards: Flashcard[]): Flashcard[] => {
+  const shuffled = [...cards];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+};
+
+const getDifficultyScore = (card: Flashcard): number => {
+  const statusWeight = card.status === 'learning' ? 2 : card.status === 'new' ? 1 : 0;
+  return (3 - card.easeFactor) * 10 + statusWeight * 5 - card.interval;
+};
+
+const ReviewPage: React.FC<Props> = ({ flashcards, onReview, mode, onExit }) => {
+  const [sessionCards, setSessionCards] = useState<Flashcard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [performanceSelection, setPerformanceSelection] = useState<'easy' | 'okay' | 'hard' | null>(null);
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
 
   useEffect(() => {
-    const today = new Date();
-    const due = flashcards.filter(card => new Date(card.nextReview) <= today);
-    setDueCards(due);
-  }, [flashcards]);
+    if (sessionCards.length > 0 || currentCardIndex > 0) {
+      return;
+    }
 
-  const handlePerformance = (performance: 'easy' | 'good' | 'hard') => {
-    onReview(dueCards[currentCardIndex], performance);
+    if (mode === 'due') {
+      const today = new Date();
+      const due = flashcards.filter(card => new Date(card.nextReview) <= today);
+      setSessionCards(due);
+    } else {
+      const hardestCards = flashcards
+        .filter(card => card.status !== 'mastered')
+        .sort((a, b) => getDifficultyScore(b) - getDifficultyScore(a))
+        .slice(0, 10);
+      setSessionCards(shuffleCards(hardestCards));
+    }
+
+    setCurrentCardIndex(0);
     setShowAnswer(false);
+    setPerformanceSelection(null);
+    setShowVideoPlayer(false);
+  }, [mode, flashcards, currentCardIndex, sessionCards.length]);
+
+  const handleNextCard = () => {
+    if (performanceSelection === null) {
+      return;
+    }
+
+    onReview(sessionCards[currentCardIndex], performanceSelection);
+    setShowAnswer(false);
+    setPerformanceSelection(null);
+    setShowVideoPlayer(false);
     setCurrentCardIndex(prev => prev + 1);
   };
 
-  if (dueCards.length === 0) {
-    return <p>No reviews due today!</p>;
+  if (sessionCards.length === 0) {
+    return (
+      <Container>
+        <p className="mt-3">
+          {mode === 'due' ? 'No reviews due today!' : 'No phrases available for difficult review yet.'}
+        </p>
+        <Button variant="outline-secondary" onClick={onExit}>Back to Library</Button>
+      </Container>
+    );
   }
 
-  if (currentCardIndex >= dueCards.length) {
-    return <p>All reviews for today are complete!</p>;
+  if (currentCardIndex >= sessionCards.length) {
+    return (
+      <Container>
+        <p className="mt-3">Review session complete!</p>
+        <Button variant="outline-secondary" onClick={onExit}>Back to Library</Button>
+      </Container>
+    );
   }
 
-  const currentCard = dueCards[currentCardIndex];
+  const currentCard = sessionCards[currentCardIndex];
+  const videoId = getYoutubeVideoId(currentCard.youtubeUrl) || '';
 
   return (
     <Container>
       <Card>
         <Card.Body>
+          <Card.Subtitle className="mb-2 text-muted">
+            {mode === 'difficult' ? 'Difficult Review Session' : 'Due Review Session'}
+          </Card.Subtitle>
+          <Card.Text className="text-muted mb-2">
+            Card {currentCardIndex + 1} of {sessionCards.length}
+          </Card.Text>
           <Card.Title>{currentCard.koreanPhrase}</Card.Title>
           {showAnswer && (
             <Card.Text className="text-muted">{currentCard.englishTranslation}</Card.Text>
           )}
           {!showAnswer && (
-            <Button onClick={() => setShowAnswer(true)}>Show Answer</Button>
+            <Button onClick={() => setShowAnswer(true)}>Reveal Translation</Button>
           )}
           {showAnswer && (
-            <div>
-              <Button variant="danger" onClick={() => handlePerformance('hard')}>Hard</Button>
-              <Button variant="warning" onClick={() => handlePerformance('good')}>Good</Button>
-              <Button variant="success" onClick={() => handlePerformance('easy')}>Easy</Button>
+            <div className="d-grid gap-2">
+              <div className="position-relative mb-2">
+                <Card.Img variant="top" src={currentCard.thumbnailUrl} />
+                <div className="position-absolute top-50 start-50 translate-middle">
+                  <Button variant="light" onClick={() => setShowVideoPlayer(true)} disabled={!videoId}>
+                    <Play size={32} />
+                  </Button>
+                </div>
+              </div>
+              <Button
+                variant={performanceSelection === 'easy' ? 'success' : 'outline-success'}
+                onClick={() => setPerformanceSelection('easy')}
+              >
+                Easy
+              </Button>
+              <Button
+                variant={performanceSelection === 'okay' ? 'warning' : 'outline-warning'}
+                onClick={() => setPerformanceSelection('okay')}
+              >
+                Okay
+              </Button>
+              <Button
+                variant={performanceSelection === 'hard' ? 'danger' : 'outline-danger'}
+                onClick={() => setPerformanceSelection('hard')}
+              >
+                Hard
+              </Button>
+              <Button variant="primary" onClick={handleNextCard} disabled={performanceSelection === null}>
+                Next Phrase
+              </Button>
             </div>
           )}
         </Card.Body>
       </Card>
+      <VideoPlayer
+        show={showVideoPlayer}
+        onHide={() => setShowVideoPlayer(false)}
+        videoId={videoId}
+        startTime={currentCard.startTime}
+        endTime={currentCard.endTime}
+      />
     </Container>
   );
 };

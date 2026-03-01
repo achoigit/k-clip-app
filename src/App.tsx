@@ -7,8 +7,12 @@ import ReviewPage from './components/ReviewPage';
 import { Flashcard } from './types';
 import { updateFlashcardReview } from './services/srs';
 
+type ReviewSessionMode = 'none' | 'due' | 'difficult';
+
 const App: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
+  const [reviewSessionMode, setReviewSessionMode] = useState<ReviewSessionMode>('none');
 
   useEffect(() => {
     try {
@@ -48,13 +52,30 @@ const App: React.FC = () => {
     setFlashcards(prev => [...prev, newCard]);
   };
 
-  const handleReview = (card: Flashcard, performance: 'easy' | 'good' | 'hard') => {
+  const handleReview = (card: Flashcard, performance: 'easy' | 'okay' | 'hard') => {
     const updatedCard = updateFlashcardReview(card, performance);
     setFlashcards(prev => prev.map(c => c.id === updatedCard.id ? updatedCard : c));
   };
 
   const updateFlashcard = (updatedCard: Flashcard) => {
     setFlashcards(prev => prev.map(c => c.id === updatedCard.id ? updatedCard : c));
+  };
+
+  const startEditingFlashcard = (card: Flashcard) => {
+    setEditingCard(card);
+  };
+
+  const stopEditingFlashcard = () => {
+    setEditingCard(null);
+  };
+
+  const startReviewSession = (mode: Exclude<ReviewSessionMode, 'none'>) => {
+    setReviewSessionMode(mode);
+    setEditingCard(null);
+  };
+
+  const stopReviewSession = () => {
+    setReviewSessionMode('none');
   };
 
   const deleteFlashcard = (cardId: string) => {
@@ -80,16 +101,38 @@ const App: React.FC = () => {
             <Tab eventKey="library" title="Library">
             <Row>
                 <Col md={4}>
-                <Dashboard flashcards={flashcards} />
-                <FlashcardCreator addFlashcard={addFlashcard} />
+                <Dashboard
+                  flashcards={flashcards}
+                  reviewSessionMode={reviewSessionMode}
+                  onStartDueReview={() => startReviewSession('due')}
+                  onStartDifficultReview={() => startReviewSession('difficult')}
+                  onBackToLibrary={stopReviewSession}
+                />
+                <FlashcardCreator
+                  addFlashcard={addFlashcard}
+                  editingCard={editingCard}
+                  onUpdateFlashcard={updateFlashcard}
+                  onCancelEdit={stopEditingFlashcard}
+                />
                 </Col>
                 <Col md={8}>
-                <FlashcardLibrary flashcards={flashcards} onUpdateFlashcard={updateFlashcard} onDeleteFlashcard={deleteFlashcard} />
+                {reviewSessionMode === 'none' ? (
+                  <FlashcardLibrary
+                    flashcards={flashcards}
+                    onUpdateFlashcard={updateFlashcard}
+                    onDeleteFlashcard={deleteFlashcard}
+                    onEditFlashcard={startEditingFlashcard}
+                  />
+                ) : (
+                  <ReviewPage
+                    flashcards={flashcards}
+                    onReview={handleReview}
+                    mode={reviewSessionMode}
+                    onExit={stopReviewSession}
+                  />
+                )}
                 </Col>
             </Row>
-            </Tab>
-            <Tab eventKey="review" title="Review">
-            <ReviewPage flashcards={flashcards} onReview={handleReview} />
             </Tab>
         </Tabs>
         </Container>

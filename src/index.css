@@ -365,6 +365,26 @@ a {
   background: color-mix(in srgb, var(--bg-elevated) 85%, var(--accent) 15%);
 }
 
+/* Ensure third-party keyboard defaults don't force a light palette in dark mode. */
+:root[data-theme='dark'] .simple-keyboard,
+:root[data-theme='dark'] .hg-theme-default.simple-keyboard {
+  background: var(--bg-soft) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+:root[data-theme='dark'] .simple-keyboard .hg-button,
+:root[data-theme='dark'] .hg-theme-default.simple-keyboard .hg-button {
+  background: color-mix(in srgb, var(--bg-elevated) 94%, transparent 6%) !important;
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--border-subtle) !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme='dark'] .simple-keyboard .hg-button:hover,
+:root[data-theme='dark'] .hg-theme-default.simple-keyboard .hg-button:hover {
+  background: color-mix(in srgb, var(--bg-elevated) 82%, var(--accent) 18%) !important;
+}
+
 .hg-activeButton {
   background: var(--accent) !important;
   color: var(--accent-contrast) !important;

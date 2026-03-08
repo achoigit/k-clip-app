@@ -72,7 +72,7 @@ const ReviewPage: React.FC<Props> = ({ flashcards, onReview, mode, onExit }) => 
   if (sessionCards.length === 0) {
     return (
       <Container>
-        <p className="mt-3">
+        <p className="mt-3 text-muted review-meta">
           {mode === 'due' ? 'No reviews due today!' : 'No phrases available for difficult review yet.'}
         </p>
         <Button variant="outline-secondary" onClick={onExit}>Back to Library</Button>
@@ -83,7 +83,7 @@ const ReviewPage: React.FC<Props> = ({ flashcards, onReview, mode, onExit }) => 
   if (currentCardIndex >= sessionCards.length) {
     return (
       <Container>
-        <p className="mt-3">Review session complete!</p>
+        <p className="mt-3 text-muted review-meta">Review session complete!</p>
         <Button variant="outline-secondary" onClick={onExit}>Back to Library</Button>
       </Container>
     );
@@ -96,48 +96,51 @@ const ReviewPage: React.FC<Props> = ({ flashcards, onReview, mode, onExit }) => 
     <Container>
       <Card>
         <Card.Body>
-          <Card.Subtitle className="mb-2 text-muted">
+          <Card.Subtitle className="mb-2 text-muted review-meta">
             {mode === 'difficult' ? 'Difficult Review Session' : 'Due Review Session'}
           </Card.Subtitle>
-          <Card.Text className="text-muted mb-2">
+          <Card.Text className="text-muted review-meta mb-2">
             Card {currentCardIndex + 1} of {sessionCards.length}
           </Card.Text>
           <Card.Title>{currentCard.koreanPhrase}</Card.Title>
           {showAnswer && (
-            <Card.Text className="text-muted">{currentCard.englishTranslation}</Card.Text>
+            <Card.Text className="text-muted translation-text">{currentCard.englishTranslation}</Card.Text>
           )}
           {!showAnswer && (
-            <Button onClick={() => setShowAnswer(true)}>Reveal Translation</Button>
+            <Button className="review-action-btn" onClick={() => setShowAnswer(true)}>Reveal Translation</Button>
           )}
           {showAnswer && (
-            <div className="d-grid gap-2">
-              <div className="position-relative mb-2">
-                <Card.Img variant="top" src={currentCard.thumbnailUrl} />
+            <div className="d-grid gap-2 review-action-stack">
+              <div className="position-relative media-frame mb-2">
+                <Card.Img className="media-thumb" variant="top" src={currentCard.thumbnailUrl} />
                 <div className="position-absolute top-50 start-50 translate-middle">
-                  <Button variant="light" onClick={() => setShowVideoPlayer(true)} disabled={!videoId}>
+                  <Button className="video-play-button" variant="light" onClick={() => setShowVideoPlayer(true)} disabled={!videoId}>
                     <Play size={32} />
                   </Button>
                 </div>
               </div>
               <Button
+                className="review-action-btn"
                 variant={performanceSelection === 'easy' ? 'success' : 'outline-success'}
                 onClick={() => setPerformanceSelection('easy')}
               >
                 Easy
               </Button>
               <Button
+                className="review-action-btn"
                 variant={performanceSelection === 'okay' ? 'warning' : 'outline-warning'}
                 onClick={() => setPerformanceSelection('okay')}
               >
                 Okay
               </Button>
               <Button
+                className="review-action-btn"
                 variant={performanceSelection === 'hard' ? 'danger' : 'outline-danger'}
                 onClick={() => setPerformanceSelection('hard')}
               >
                 Hard
               </Button>
-              <Button variant="primary" onClick={handleNextCard} disabled={performanceSelection === null}>
+              <Button className="review-action-btn" variant="primary" onClick={handleNextCard} disabled={performanceSelection === null}>
                 Next Phrase
               </Button>
             </div>

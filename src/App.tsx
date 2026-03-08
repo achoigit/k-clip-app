@@ -1,41 +1,147 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Tabs, Tab } from 'react-bootstrap';
+import { Button, Col, Container, Row, Tab, Tabs } from 'react-bootstrap';
+import { MoonStarsFill, SunFill } from 'react-bootstrap-icons';
 import Dashboard from './components/Dashboard';
 import FlashcardCreator from './components/FlashcardCreator';
 import FlashcardLibrary from './components/FlashcardLibrary';
 import ReviewPage from './components/ReviewPage';
 import { Flashcard } from './types';
 import { updateFlashcardReview } from './services/srs';
+import { useTheme } from './contexts/ThemeContext';
 
 type ReviewSessionMode = 'none' | 'due' | 'difficult';
 
+const FLASHCARDS_KEY = 'flashcards';
+const FLASHCARDS_BACKUP_KEY = 'flashcards_backup';
+
+const parseDateSafely = (value: unknown, fallback: Date | null): Date | null => {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) {
+    return fallback;
+  }
+
+  return date;
+};
+
+const normalizeFlashcard = (raw: unknown): Flashcard | null => {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+
+  const card = raw as Partial<Flashcard> & Record<string, unknown>;
+  const readNonEmptyString = (key: string): string | null => {
+    const value = card[key];
+    if (typeof value !== 'string' || value.trim() === '') {
+      return null;
+    }
+    return value;
+  };
+
+  const id = readNonEmptyString('id');
+  const koreanPhrase = readNonEmptyString('koreanPhrase');
+  const englishTranslation = readNonEmptyString('englishTranslation');
+  const youtubeUrl = readNonEmptyString('youtubeUrl');
+  const thumbnailUrl = readNonEmptyString('thumbnailUrl');
+  if (!id || !koreanPhrase || !englishTranslation || !youtubeUrl || !thumbnailUrl) {
+    return null;
+  }
+
+  const startTime = Number(card.startTime);
+  const endTime = Number(card.endTime);
+  const interval = Number(card.interval ?? 1);
+  const easeFactor = Number(card.easeFactor ?? 2.5);
+  if ([startTime, endTime, interval, easeFactor].some(Number.isNaN)) {
+    return null;
+  }
+
+  const nextReview = parseDateSafely(card.nextReview, new Date());
+  if (!nextReview) {
+    return null;
+  }
+
+  const status = card.status;
+  const safeStatus = status === 'new' || status === 'learning' || status === 'mastered' ? status : 'new';
+
+  return {
+    id,
+    koreanPhrase,
+    englishTranslation,
+    youtubeUrl,
+    startTime,
+    endTime,
+    thumbnailUrl,
+    lastReviewed: parseDateSafely(card.lastReviewed, null),
+    nextReview,
+    interval,
+    easeFactor,
+    status: safeStatus,
+  };
+};
+
+const loadFlashcardsFromStorage = (key: string): Flashcard[] | null => {
+  const storedValue = localStorage.getItem(key);
+  if (!storedValue) {
+    return null;
+  }
+
+  const parsedValue = JSON.parse(storedValue);
+  if (!Array.isArray(parsedValue)) {
+    throw new Error(`Stored value for ${key} is not an array`);
+  }
+
+  const normalizedCards = parsedValue.map(normalizeFlashcard).filter((card): card is Flashcard => Boolean(card));
+  if (parsedValue.length > 0 && normalizedCards.length === 0) {
+    throw new Error(`Stored value for ${key} has no valid flashcards`);
+  }
+
+  return normalizedCards;
+};
+
 const App: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
   const [reviewSessionMode, setReviewSessionMode] = useState<ReviewSessionMode>('none');
 
   useEffect(() => {
     try {
-      const storedFlashcards = localStorage.getItem('flashcards');
-      if (storedFlashcards) {
-        const parsedFlashcards = JSON.parse(storedFlashcards).map((card: any) => ({
-          ...card,
-          nextReview: new Date(card.nextReview),
-          lastReviewed: card.lastReviewed ? new Date(card.lastReviewed) : null,
-        }));
-        setFlashcards(parsedFlashcards);
+      const primaryCards = loadFlashcardsFromStorage(FLASHCARDS_KEY);
+      if (primaryCards) {
+        setFlashcards(primaryCards);
+        localStorage.setItem(FLASHCARDS_BACKUP_KEY, JSON.stringify(primaryCards));
+        return;
+      }
+
+      const backupCards = loadFlashcardsFromStorage(FLASHCARDS_BACKUP_KEY);
+      if (backupCards) {
+        setFlashcards(backupCards);
+        localStorage.setItem(FLASHCARDS_KEY, JSON.stringify(backupCards));
       }
     } catch (error) {
-      console.error("Failed to load or parse flashcards from localStorage", error);
-      // Optionally, clear the corrupted storage
-      // localStorage.removeItem('flashcards');
+      console.error('Failed to load flashcards from localStorage', error);
+
+      try {
+        const backupCards = loadFlashcardsFromStorage(FLASHCARDS_BACKUP_KEY);
+        if (backupCards) {
+          setFlashcards(backupCards);
+          localStorage.setItem(FLASHCARDS_KEY, JSON.stringify(backupCards));
+        }
+      } catch (backupError) {
+        console.error('Failed to restore flashcards backup', backupError);
+      }
     }
   }, []);
 
   useEffect(() => {
     // Do not save the initial empty array to localStorage on first render
     if (flashcards.length > 0) {
-        localStorage.setItem('flashcards', JSON.stringify(flashcards));
+        const serialized = JSON.stringify(flashcards);
+        localStorage.setItem(FLASHCARDS_KEY, serialized);
+        localStorage.setItem(FLASHCARDS_BACKUP_KEY, serialized);
     }
   }, [flashcards]);
 
@@ -84,23 +190,39 @@ const App: React.FC = () => {
         setFlashcards(newFlashcards);
         // If the last card is deleted, clear localStorage
         if (newFlashcards.length === 0) {
-            localStorage.removeItem('flashcards');
+          localStorage.removeItem(FLASHCARDS_KEY);
+          localStorage.removeItem(FLASHCARDS_BACKUP_KEY);
         }
     }
   };
 
   return (
-    <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-        <Container fluid className="py-4">
-        <Row>
-            <Col>
-            <h1 className="text-center mb-4">K-Clip: Korean Language Learning</h1>
-            </Col>
-        </Row>
-        <Tabs defaultActiveKey="library" id="main-tabs" className="mb-3">
+    <div className="app-shell">
+      <Container fluid className="app-container py-4">
+        <header className="app-header mb-4">
+          <div>
+            <p className="app-eyebrow mb-1">K-Clip</p>
+            <h1 className="app-title mb-0">Korean Phrase Learning Studio</h1>
+          </div>
+          <div className="theme-controls">
+            <span className="theme-state-pill" aria-live="polite">
+              Current: {theme === 'light' ? 'Light' : 'Dark'}
+            </span>
+            <Button
+              variant="outline-primary"
+              className="theme-toggle-btn"
+              onClick={toggleTheme}
+              aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+            >
+              {theme === 'light' ? <MoonStarsFill /> : <SunFill />}
+              <span className="ms-2">{theme === 'light' ? 'Dark' : 'Light'} mode</span>
+            </Button>
+          </div>
+        </header>
+        <Tabs defaultActiveKey="library" id="main-tabs" className="main-tabs mb-3">
             <Tab eventKey="library" title="Library">
             <Row>
-                <Col md={4}>
+                <Col md={4} className="mb-4 mb-md-0">
                 <Dashboard
                   flashcards={flashcards}
                   reviewSessionMode={reviewSessionMode}
@@ -135,7 +257,7 @@ const App: React.FC = () => {
             </Row>
             </Tab>
         </Tabs>
-        </Container>
+      </Container>
     </div>
   );
 };

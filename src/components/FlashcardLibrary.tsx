@@ -69,7 +69,7 @@ const FlashcardLibrary: React.FC<Props> = ({ flashcards, onUpdateFlashcard, onDe
 
   return (
     <div>
-      <h2>Flashcard Library</h2>
+      <h2 className="app-title fs-3 mb-3">Flashcard Library</h2>
       <Form.Group className="mb-3">
         <Form.Control
           type="text"
@@ -81,28 +81,28 @@ const FlashcardLibrary: React.FC<Props> = ({ flashcards, onUpdateFlashcard, onDe
       <Row xs={1} md={2} lg={3} className="g-4">
         {filteredFlashcards.map(card => (
           <Col key={card.id}>
-            <Card>
-              <div className="position-relative">
-                <Card.Img variant="top" src={card.thumbnailUrl} />
+            <Card className="h-100">
+              <div className="position-relative media-frame">
+                <Card.Img className="media-thumb" variant="top" src={card.thumbnailUrl} />
                 <div className="position-absolute top-50 start-50 translate-middle">
-                    <Button variant="light" onClick={() => playVideo(card)}><Play size={32} /></Button>
+                    <Button className="video-play-button" variant="light" onClick={() => playVideo(card)}><Play size={32} /></Button>
                 </div>
               </div>
-              <Card.Body>
+              <Card.Body className="d-flex flex-column">
                 <Card.Text className="fw-bold">{card.koreanPhrase}</Card.Text>
                 {showTranslation === card.id && (
-                  <Card.Text className="text-muted fst-italic">{card.englishTranslation}</Card.Text>
+                  <Card.Text className="text-muted fst-italic translation-text">{card.englishTranslation}</Card.Text>
                 )}
-                <div className="d-flex justify-content-end">
+                <div className="icon-action-row mt-auto">
                     <OverlayTrigger placement="top" overlay={renderTooltip('Translate')}>
-                        <Button variant="secondary" size="sm" onClick={() => toggleTranslation(card.id)}><Translate /></Button>
+                    <Button className="icon-action-btn" variant="secondary" size="sm" onClick={() => toggleTranslation(card.id)}><Translate /></Button>
                     </OverlayTrigger>
                     {card.englishTranslation === '[Auto-translated]' && (
                         <OverlayTrigger placement="top" overlay={renderTooltip('Fix Translation')}>
                             <Button 
+                        className="icon-action-btn"
                                 variant="outline-success" 
                                 size="sm" 
-                                className="ms-2"
                                 disabled={isTranslating === card.id}
                                 onClick={() => handleFixTranslation(card)}>
                                 <ArrowClockwise />
@@ -110,13 +110,13 @@ const FlashcardLibrary: React.FC<Props> = ({ flashcards, onUpdateFlashcard, onDe
                         </OverlayTrigger>
                     )}
                     <OverlayTrigger placement="top" overlay={renderTooltip('Speak')}>
-                        <Button variant="info" size="sm" className="ms-2" onClick={() => speakKorean(card.koreanPhrase)}><Mic /></Button>
+                    <Button className="icon-action-btn" variant="info" size="sm" onClick={() => speakKorean(card.koreanPhrase)}><Mic /></Button>
                     </OverlayTrigger>
                     <OverlayTrigger placement="top" overlay={renderTooltip('Edit')}>
-                        <Button variant="outline-primary" size="sm" className="ms-2" onClick={() => handleEdit(card)}><Pencil /></Button>
+                    <Button className="icon-action-btn" variant="outline-primary" size="sm" onClick={() => handleEdit(card)}><Pencil /></Button>
                     </OverlayTrigger>
                     <OverlayTrigger placement="top" overlay={renderTooltip('Delete')}>
-                        <Button variant="outline-danger" size="sm" className="ms-2" onClick={() => onDeleteFlashcard(card.id)}><Trash /></Button>
+                    <Button className="icon-action-btn" variant="outline-danger" size="sm" onClick={() => onDeleteFlashcard(card.id)}><Trash /></Button>
                     </OverlayTrigger>
                 </div>
               </Card.Body>

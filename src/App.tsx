@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Tabs, Tab } from 'react-bootstrap';
+import { Button, Col, Container, Row, Tab, Tabs } from 'react-bootstrap';
+import { MoonStarsFill, SunFill } from 'react-bootstrap-icons';
 import Dashboard from './components/Dashboard';
 import FlashcardCreator from './components/FlashcardCreator';
 import FlashcardLibrary from './components/FlashcardLibrary';
 import ReviewPage from './components/ReviewPage';
 import { Flashcard } from './types';
 import { updateFlashcardReview } from './services/srs';
+import { useTheme } from './contexts/ThemeContext';
 
 type ReviewSessionMode = 'none' | 'due' | 'difficult';
 
 const App: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
   const [reviewSessionMode, setReviewSessionMode] = useState<ReviewSessionMode>('none');
@@ -90,17 +93,32 @@ const App: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-        <Container fluid className="py-4">
-        <Row>
-            <Col>
-            <h1 className="text-center mb-4">K-Clip: Korean Language Learning</h1>
-            </Col>
-        </Row>
-        <Tabs defaultActiveKey="library" id="main-tabs" className="mb-3">
+    <div className="app-shell">
+      <Container fluid className="app-container py-4">
+        <header className="app-header mb-4">
+          <div>
+            <p className="app-eyebrow mb-1">K-Clip</p>
+            <h1 className="app-title mb-0">Korean Phrase Learning Studio</h1>
+          </div>
+          <div className="theme-controls">
+            <span className="theme-state-pill" aria-live="polite">
+              Current: {theme === 'light' ? 'Light' : 'Dark'}
+            </span>
+            <Button
+              variant="outline-primary"
+              className="theme-toggle-btn"
+              onClick={toggleTheme}
+              aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+            >
+              {theme === 'light' ? <MoonStarsFill /> : <SunFill />}
+              <span className="ms-2">{theme === 'light' ? 'Dark' : 'Light'} mode</span>
+            </Button>
+          </div>
+        </header>
+        <Tabs defaultActiveKey="library" id="main-tabs" className="main-tabs mb-3">
             <Tab eventKey="library" title="Library">
             <Row>
-                <Col md={4}>
+                <Col md={4} className="mb-4 mb-md-0">
                 <Dashboard
                   flashcards={flashcards}
                   reviewSessionMode={reviewSessionMode}
@@ -135,7 +153,7 @@ const App: React.FC = () => {
             </Row>
             </Tab>
         </Tabs>
-        </Container>
+      </Container>
     </div>
   );
 };

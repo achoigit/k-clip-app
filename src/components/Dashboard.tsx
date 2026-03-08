@@ -37,25 +37,25 @@ const Dashboard: React.FC<Props> = ({
           <Col>
             <div className="text-center">
               <h5>{totalCards}</h5>
-              <p className="text-muted">Total</p>
+              <p className="text-muted stat-label">Total</p>
             </div>
           </Col>
           <Col>
             <div className="text-center">
               <h5>{newCards}</h5>
-              <p className="text-muted">New</p>
+              <p className="text-muted stat-label">New</p>
             </div>
           </Col>
           <Col>
             <div className="text-center">
               <h5>{learningCards}</h5>
-              <p className="text-muted">Learning</p>
+              <p className="text-muted stat-label">Learning</p>
             </div>
           </Col>
           <Col>
             <div className="text-center">
               <h5>{masteredCards}</h5>
-              <p className="text-muted">Mastered</p>
+              <p className="text-muted stat-label">Mastered</p>
             </div>
           </Col>
         </Row>
@@ -67,7 +67,7 @@ const Dashboard: React.FC<Props> = ({
                   Start Due Review
                 </Button>
               ) : (
-                <p className="text-muted mb-0">No reviews due today!</p>
+                <p className="text-muted stat-label mb-0">No reviews due today!</p>
               )}
               <Button variant="outline-primary" onClick={onStartDifficultReview} disabled={flashcards.length === 0}>
                 Review 10 Most Difficult Phrases
